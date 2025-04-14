@@ -1,52 +1,62 @@
-# Async Throttle Decorator (Python)
+# PyThrottle
 
-This Python module provides a `throttle` decorator designed to limit the call frequency of asynchronous functions (`async def`). It mimics the behavior of common JavaScript throttle implementations (leading edge trigger, discarding subsequent calls).
+PyThrottle is a Python library that provides an asynchronous throttling decorator inspired by JavaScript throttle patterns.
 
 ## Features
 
-*   **Throttling**: Ensures the decorated async function is called at most once during the specified `wait` period.
-*   **Leading Edge Trigger**: The first call within a throttle cycle is executed immediately.
-*   **Discarding**: Calls arriving during the cooldown period (within `wait` seconds) are ignored and not queued for later execution.
-*   **`asyncio`-based**: Designed specifically for use with Python's `asyncio` library.
+- **Async-first**: Designed specifically for throttling asynchronous function calls
+- **Leading Edge Execution**: The first call in a cycle executes immediately
+- **Trailing Edge Execution**: The most recent call during cooldown is executed when the cooldown period ends
+- **Result Preservation**: All calls return their execution results (either immediately or after delay)
+- **Simple API**: Clean and easy-to-use decorator syntax
+
 
 ## Usage
 
-Apply the `@throttle(wait)` decorator to your async function, where `wait` is the minimum time interval (in seconds) allowed between calls.
+### Basic Example
 
 ```python
-# filepath: throttle.py
 import asyncio
-import time
-from throttle import throttle # Assuming the throttle decorator is in this file
+from throttle import throttle
 
-@throttle(1.0) # Allow at most one call per second
-async def my_throttled_function(arg):
-    print(f"{time.monotonic():.2f}: Function called with {arg}")
-    await asyncio.sleep(0.2) # Simulate some async work
-    print(f"{time.monotonic():.2f}: Function finished")
-    return f"Result for {arg}"
+@throttle(1.0)  # Throttle to one call per second
+async def fetch_data(query: str):
+    # Simulating API call or resource-intensive operation
+    await asyncio.sleep(0.2)
+    return f"Results for {query}"
 
 async def main():
-    # Call the function rapidly
-    tasks = [asyncio.create_task(my_throttled_function(i)) for i in range(5)]
-    await asyncio.sleep(0.5) # Wait a short period
-    tasks.extend([asyncio.create_task(my_throttled_function(i + 5)) for i in range(5)])
+    # Rapid calls will be throttled
+    tasks = []
+    for i in range(5):
+        tasks.append(asyncio.create_task(fetch_data(f"query-{i}")))
+        await asyncio.sleep(0.3)  # Try calling every 0.3 seconds
+    
+    # Wait for all tasks to complete
+    results = await asyncio.gather(*tasks)
+    
+    # Only some calls will return actual results
+    # (first call and the most recent call during each cooldown period)
+    print(results)
 
-    results = await asyncio.gather(*tasks, return_exceptions=True)
-    print("\nResults (None indicates a throttled/ignored call):")
-    for i, res in enumerate(results):
-        print(f"Call {i}: {res}")
-
-if __name__ == "__main__":
-    asyncio.run(main())
+asyncio.run(main())
 ```
 
-## How to Run the Example
+## How It Works
 
-You can run the example usage included in the `throttle.py` file directly:
+1. When a throttled function is called for the first time, it executes immediately
+2. A cooldown period starts, during which new calls are not executed immediately
+3. During the cooldown, only the most recent call is saved
+4. When the cooldown period ends, if there is a saved call, it is executed and a new cooldown begins
+5. All calls return Futures that eventually resolve to either their result or None
 
-```bash
-python throttle.py
-```
+## Use Cases
 
-You will observe that the function is only called again after the `wait` interval (1.0 second in the example) has passed since the start of the last allowed call. Other calls during the cooldown are ignored (returning `None`).
+- Rate limiting API requests
+- Preventing UI element updates from happening too frequently
+- Controlling frequency of resource-intensive operations
+- Managing event handler firing rates (e.g., scroll, resize, etc.)
+
+## License
+
+[MIT License](LICENSE)
