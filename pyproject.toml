@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=42", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pythrottle"
+version = "0.1.0"
+description = "A Python throttle decorator for rate limiting function calls"
+readme = "README.md"
+authors = [
+    {name = "Lloyd", email = "lloydzhou@qq.com"}
+]
+license = {text = "MIT"}
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+requires-python = ">=3.7"
+dependencies = []
+
+[project.urls]
+"Homepage" = "https://github.com/lloydzhou/pythrottle"
+"Bug Tracker" = "https://github.com/lloydzhou/pythrottle/issues"
+
+[tool.setuptools]
+packages = ["pythrottle"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = "test_*.py"
