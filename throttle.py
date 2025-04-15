@@ -1,7 +1,6 @@
 import asyncio
 import functools
-import time
-from typing import Callable, Any, Coroutine, Optional, Tuple, Dict, TypeVar, List
+from typing import Callable, Any, Coroutine, Optional, Tuple, Dict, TypeVar
 
 T = TypeVar('T')
 
@@ -90,6 +89,7 @@ def throttle(wait: float):
 
 
 if __name__ == "__main__":
+    import time
     # --- Example Usage ---
     @throttle(1.0) # Limit to 1 call per second (at most)
     async def my_async_function(name: str):
